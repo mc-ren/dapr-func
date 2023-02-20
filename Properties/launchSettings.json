@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "dapr_func": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7193",
+      "launchBrowser": false
+    }
+  }
+}

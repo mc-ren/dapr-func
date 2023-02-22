@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: helloworld
+
+---
+ 
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: helloapp
+  namespace: helloworld
+  labels:
+    app: helloworld
+    service: helloapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: helloapp
+  template:
+    metadata:
+      labels:
+        app: helloworld
+        service: helloapp
+      annotations:
+        # These are the same parameters that we saw earlier from the dapr CLI and the Dockerfile
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "helloapp"
+        dapr.io/app-port: "80"
+    spec:
+      containers:
+        - name: helloapp
+          # This is our image that was published to the local Docker container registry
+          image: localhost:5001/hello
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              # The port we are exposing to the host for this service.
+              containerPort: 8181
+              protocol: TCP
+
+---
+ 
+kind: Service
+apiVersion: v1
+metadata:
+  name: helloapp
+  namespace: helloworld
+  labels:
+    app: helloworld
+    service: helloapp
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30500
+      protocol: TCP
+      name: http
+  selector:
+    service: helloapp
+
+---
+ 
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: dateapp
+  namespace: helloworld
+  labels:
+    app: helloworld
+    service: dateapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: dateapp
+  template:
+    metadata:
+      labels:
+        app: helloworld
+        service: dateapp
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "dateapp"
+        dapr.io/app-port: "80"
+    spec:
+      containers:
+        - name: dateapp
+          image: localhost:5001/datefunc
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP

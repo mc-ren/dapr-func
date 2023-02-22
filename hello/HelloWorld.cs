@@ -7,6 +7,8 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Net.Http;
+using Dapr.Client;
 
 namespace dapr_func
 {
@@ -25,9 +27,13 @@ namespace dapr_func
             dynamic data = JsonConvert.DeserializeObject(requestBody);
             name = name ?? data?.name;
 
+            // Invoke the CurrentDate service to get the current date.
+            HttpClient httpClient = DaprClient.CreateInvokeHttpClient();
+            string currentDateString = await httpClient.GetStringAsync("http://dateapp/api/CurrentDate");
+ 
             string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
+                ? $"This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response ({currentDateString})."
+                : $"Hello, {name}. This HTTP triggered function executed successfully ({currentDateString}).";
 
             return new OkObjectResult(responseMessage);
         }
